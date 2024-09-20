@@ -19,8 +19,8 @@ from synthvoice.oscillator import Oscillator
 led = digitalio.DigitalInOut(board.LED)
 led.direction = digitalio.Direction.OUTPUT
 
-audio = audiopwmio.PWMAudioOut(board.A0)
-synth = synthio.Synthesizer(sample_rate=44100)
+audio = audiopwmio.PWMAudioOut(board.A0, board.A1)
+synth = synthio.Synthesizer(sample_rate=44100, channel_count=2)
 audio.play(synth)
 
 voice = Oscillator(synth)
@@ -58,6 +58,10 @@ voice.filter_amount = 1200
 voice.filter_release_time = 0.75
 voice.filter_rate = 0.5
 voice.filter_depth = 1000
+
+# Panning
+voice.pan_depth = 1.0
+voice.pan_rate = 0.25
 
 midi = adafruit_midi.MIDI(
     midi_in=usb_midi.ports[0], in_channel=0, midi_out=usb_midi.ports[1], out_channel=0
