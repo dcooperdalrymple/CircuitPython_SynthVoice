@@ -5,19 +5,23 @@
 
 import math
 import time
-import ulab.numpy as np
-import ulab.utils
+
 import synthio
 import synthwaveform
+import ulab.numpy as np
+import ulab.utils
+
 import synthvoice.oscillator
 
 _LOG_2 = math.log(2)
 
-def is_pow2(value:float|int) -> bool:
-    value = math.log(value)/_LOG_2
+
+def is_pow2(value: float | int) -> bool:
+    value = math.log(value) / _LOG_2
     return math.ceil(value) == math.floor(value)
 
-def fft(data:np.ndarray, log:bool=True, length:int=1024) -> np.ndarray:
+
+def fft(data: np.ndarray, log: bool = True, length: int = 1024) -> np.ndarray:
     """Perform the Fourier Fast Transform (FFT) on data.
 
     :param data: The data to be processed, typically audio samples. The data type must be either
@@ -29,8 +33,8 @@ def fft(data:np.ndarray, log:bool=True, length:int=1024) -> np.ndarray:
         precise but require more processing and RAM usage.
     """
     if len(data) > length:
-        offset = (len(data)-length)//2
-        data = data[offset:len(data)-offset]
+        offset = (len(data) - length) // 2
+        data = data[offset : len(data) - offset]
 
     if data.dtype == np.uint16:
         mean = int(np.mean(data))
@@ -46,16 +50,17 @@ def fft(data:np.ndarray, log:bool=True, length:int=1024) -> np.ndarray:
         while True:
             j *= 2
             if j > len(data):
-                data = data[:int(j//2)]
+                data = data[: int(j // 2)]
                 break
 
     data = ulab.utils.spectrogram(data)
-    data = data[1:(len(data)//2)-1]
+    data = data[1 : (len(data) // 2) - 1]
     if log:
         data = np.log(data)
     return data
 
-def fftfreq(data:np.ndarray, sample_rate:int):
+
+def fftfreq(data: np.ndarray, sample_rate: int):
     """Use the Fast Fourier Transform to determine the peak frequency of the signal.
 
     :param data: The data to be processed, typically audio samples. The data type must be either
@@ -68,21 +73,24 @@ def fftfreq(data:np.ndarray, sample_rate:int):
     del data
     return freq
 
-def resample(data:np.ndarray, in_sample_rate:int, out_sample_rate:int) -> np.ndarray:
+
+def resample(data: np.ndarray, in_sample_rate: int, out_sample_rate: int) -> np.ndarray:
     """Interpolate the data from one sample rate to another.
 
     :param data: The data to be resampled, typically audio samples.
     :param in_sample_rate: The rate at which the data was recorded in hertz.
     :param out_sample_rate: The desired rate to resample the data for playback in hertz.
     """
-    if in_sample_rate == out_sample_rate: return data
+    if in_sample_rate == out_sample_rate:
+        return data
     return np.interp(
         np.arange(0, len(data), in_sample_rate / out_sample_rate, dtype=np.float),
         np.arange(0, len(data), 1, dtype=np.uint16),
-        data
+        data,
     )
 
-def normalize(data:np.ndarray) -> np.ndarray:
+
+def normalize(data: np.ndarray) -> np.ndarray:
     """Scale the data so that it reaches the maximum peak capable of the data type (+32767 for
     :class:`ulab.numpy.int16`).
 
@@ -93,8 +101,12 @@ def normalize(data:np.ndarray) -> np.ndarray:
         raise ValueError("Invalid data type")
     max_level = np.max(data)
     if max_level < 32767.0:
-        data = np.array(np.clip(np.array(data, dtype=np.float) * 32767 / max_level, -32768, 32767), dtype=np.int16)
+        data = np.array(
+            np.clip(np.array(data, dtype=np.float) * 32767 / max_level, -32768, 32767),
+            dtype=np.int16,
+        )
     return data
+
 
 class Sample(synthvoice.oscillator.Oscillator):
     """Voice which will play back an audio file. Handles pitch, looping points, and ".wav" file
@@ -109,7 +121,13 @@ class Sample(synthvoice.oscillator.Oscillator):
     :param max_size: The maximum number of samples to load into the waveform from the sample file.
     """
 
-    def __init__(self, synthesizer:synthio.Synthesizer=None, looping:bool=True, file:str=None, max_size:int=4096):
+    def __init__(
+        self,
+        synthesizer: synthio.Synthesizer = None,
+        looping: bool = True,
+        file: str = None,
+        max_size: int = 4096,
+    ):
         super().__init__(synthesizer)
 
         self._looping = looping
@@ -145,22 +163,22 @@ class Sample(synthvoice.oscillator.Oscillator):
     def sample_rate(self) -> int:
         """The recorded audio sample rate of the :attr:`waveform` data in hertz."""
         return self._sample_rate
-    
+
     @sample_rate.setter
-    def sample_rate(self, value:int) -> None:
+    def sample_rate(self, value: int) -> None:
         self._sample_rate = value
         self._update_source_root()
 
     @property
-    def file(self) -> str|None:
+    def file(self) -> str | None:
         """The path to a 16-bit signed integer audio ".wav" file within the virtual file system.
         The audio sample rate and root frequency will automatically be calculated bye the file
         properties and with an FFT algorithm. An invalid file type will raise :class:`ValueError`.
         """
         return self._file
-    
+
     @file.setter
-    def file(self, value:str|None):
+    def file(self, value: str | None):
         if value is None:
             self._file = None
             self._note.waveform = None
@@ -169,7 +187,7 @@ class Sample(synthvoice.oscillator.Oscillator):
             self.waveform = normalize(waveform)
         self._update_source_root()
 
-    def press(self, notenum:int, velocity:float|int=1.0) -> bool:
+    def press(self, notenum: int, velocity: float | int = 1.0) -> bool:
         """Update the voice to be "pressed" with a specific MIDI note number and velocity. Returns
         whether or not a new note is received to avoid unnecessary retriggering. The envelope is
         updated with the new velocity value regardless.
@@ -190,7 +208,12 @@ class Sample(synthvoice.oscillator.Oscillator):
         """The length of the audio sample given the current state (includes note bend
         properties).
         """
-        return self._source_duration * self._root / pow(2,self._note.bend.value) / self._desired_frequency
+        return (
+            self._source_duration
+            * self._root
+            / pow(2, self._note.bend.value)
+            / self._desired_frequency
+        )
 
     @property
     def waveform_loop(self) -> tuple[float, float]:
@@ -199,9 +222,9 @@ class Sample(synthvoice.oscillator.Oscillator):
         full length of the sample.
         """
         return self._waveform_loop
-    
+
     @waveform_loop.setter
-    def waveform_loop(self, value:tuple[float, float]) -> None:
+    def waveform_loop(self, value: tuple[float, float]) -> None:
         self._set_waveform_loop(value)
 
         if not self._note.waveform:
@@ -212,7 +235,9 @@ class Sample(synthvoice.oscillator.Oscillator):
             return
 
         sample_length = len(self._note.waveform)
-        self._loop_tune = math.log(sample_length / length) / _LOG_2 if length != sample_length else 0.0
+        self._loop_tune = (
+            math.log(sample_length / length) / _LOG_2 if length != sample_length else 0.0
+        )
         self._update_root()
 
     def _update_root(self):
@@ -222,6 +247,10 @@ class Sample(synthvoice.oscillator.Oscillator):
     def update(self):
         """Update filter modulation and sample timing when :attr:`looping` is set to `False`."""
         super().update()
-        if not self._looping and not self._start is None and time.monotonic() - self._start >= self.duration:
+        if (
+            not self._looping
+            and not self._start is None
+            and time.monotonic() - self._start >= self.duration
+        ):
             self.release()
             self._start = None

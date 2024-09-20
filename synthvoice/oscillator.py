@@ -4,7 +4,9 @@
 # SPDX-License-Identifier: MIT
 
 import math
+
 import synthio
+
 import synthvoice
 
 try:
@@ -13,6 +15,7 @@ except ImportError:
     pass
 
 _LOG_2 = math.log(2)
+
 
 class Oscillator(synthvoice.Voice):
     """A complex single-voice Oscillator with the following features:
@@ -26,7 +29,7 @@ class Oscillator(synthvoice.Voice):
         value will effect tuning properties.
     """
 
-    def __init__(self, synthesizer:synthio.Synthesizer=None, root:float=440.0):
+    def __init__(self, synthesizer: synthio.Synthesizer = None, root: float = 440.0):
         super().__init__(synthesizer)
 
         self._filter_envelope = synthvoice.AREnvelope(
@@ -66,30 +69,19 @@ class Oscillator(synthvoice.Voice):
         self._note = synthio.Note(
             frequency=self._root,
             waveform=None,
-            envelope = None,
-            amplitude=synthio.LFO( # Tremolo
-                waveform=None,
-                rate=1.0,
-                scale=0.0,
-                offset=1.0
+            envelope=None,
+            amplitude=synthio.LFO(  # Tremolo
+                waveform=None, rate=1.0, scale=0.0, offset=1.0
             ),
             bend=synthio.Math(
                 synthio.MathOperation.SUM,
-                self._freq_lerp.block, # Frequency Lerp
-                synthio.LFO( # Vibrato
-                    waveform=None,
-                    rate=1.0,
-                    scale=0.0,
-                    offset=0.0
+                self._freq_lerp.block,  # Frequency Lerp
+                synthio.LFO(  # Vibrato
+                    waveform=None, rate=1.0, scale=0.0, offset=0.0
                 ),
-                self._pitch_lerp.block # Pitch Bend Lerp
+                self._pitch_lerp.block,  # Pitch Bend Lerp
             ),
-            panning=synthio.LFO(
-                waveform=None,
-                rate=1.0,
-                scale=0.0,
-                offset=0.0
-            )
+            panning=synthio.LFO(waveform=None, rate=1.0, scale=0.0, offset=0.0),
         )
         self._update_envelope()
 
@@ -99,18 +91,23 @@ class Oscillator(synthvoice.Voice):
     def notes(self) -> tuple[synthio.Note]:
         """Get all :class:`synthio.Note` objects attributed to this voice."""
         return tuple([self._note])
-    
+
     @property
     def blocks(self) -> tuple[synthio.BlockInput]:
         """Get all :class:`synthio.BlockInput` objects attributed to this voice."""
-        return self._filter_envelope.blocks + self._freq_lerp.blocks + self._pitch_lerp.blocks + (
-            self._filter_lfo,
-            self._note.amplitude,
-            self._note.bend,
-            self._note.panning,
+        return (
+            self._filter_envelope.blocks
+            + self._freq_lerp.blocks
+            + self._pitch_lerp.blocks
+            + (
+                self._filter_lfo,
+                self._note.amplitude,
+                self._note.bend,
+                self._note.panning,
+            )
         )
 
-    def press(self, notenum:int, velocity:float|int=1.0) -> bool:
+    def press(self, notenum: int, velocity: float | int = 1.0) -> bool:
         """Update the voice to be "pressed" with a specific MIDI note number and velocity. Returns
         whether or not a new note is received to avoid unnecessary retriggering. The envelope is
         updated with the new velocity value regardless.
@@ -123,7 +120,7 @@ class Oscillator(synthvoice.Voice):
         self.frequency = synthio.midi_to_hz(notenum)
         self._filter_envelope.press()
         return True
-    
+
     def release(self) -> bool:
         """Release the voice if a note is currently being played. Returns `True` if a note was
         released and `False` if not.
@@ -142,9 +139,9 @@ class Oscillator(synthvoice.Voice):
         octaves. Ie: 1.0 = 880.hz, -2.0 = 110.0hz. Defaults to 0.0.
         """
         return self._coarse_tune
-    
+
     @coarse_tune.setter
-    def coarse_tune(self, value:float) -> None:
+    def coarse_tune(self, value: float) -> None:
         self._coarse_tune = value
         self._update_root()
 
@@ -155,12 +152,12 @@ class Oscillator(synthvoice.Voice):
         to 0.0.
         """
         return self._fine_tune
-    
+
     @fine_tune.setter
-    def fine_tune(self, value:float) -> None:
+    def fine_tune(self, value: float) -> None:
         self._fine_tune = value
         self._update_root()
-    
+
     @property
     def frequency(self) -> float:
         """The frequency in hertz to set the oscillator to. Updating this value will active the
@@ -168,10 +165,10 @@ class Oscillator(synthvoice.Voice):
         this voice.
         """
         return self._freq_lerp.value
-    
+
     @frequency.setter
-    def frequency(self, value:float) -> None:
-        self._freq_lerp.value = math.log(value/self._root)/_LOG_2
+    def frequency(self, value: float) -> None:
+        self._freq_lerp.value = math.log(value / self._root) / _LOG_2
 
     @property
     def glide(self) -> float:
@@ -179,9 +176,9 @@ class Oscillator(synthvoice.Voice):
         frequencies in seconds.
         """
         return self._freq_lerp.rate
-    
+
     @glide.setter
-    def glide(self, value:float) -> None:
+    def glide(self, value: float) -> None:
         self._freq_lerp.rate = value
 
     def _update_pitch_bend(self):
@@ -199,9 +196,9 @@ class Oscillator(synthvoice.Voice):
         - 1.0/12.0 = up one semitone (chromatic note)
         """
         return self._bend_range
-    
+
     @bend_range.setter
-    def bend_range(self, value:float) -> None:
+    def bend_range(self, value: float) -> None:
         self._bend_range = value
         self._update_pitch_bend()
 
@@ -211,9 +208,9 @@ class Oscillator(synthvoice.Voice):
         Positive and negative range is defined by :attr:`bend_range`. Defaults to 0.0.
         """
         return self._bend
-    
+
     @bend.setter
-    def bend(self, value:float) -> None:
+    def bend(self, value: float) -> None:
         self._bend = value
         self._update_pitch_bend()
 
@@ -221,9 +218,9 @@ class Oscillator(synthvoice.Voice):
     def vibrato_rate(self) -> float:
         """The rate of the frequency LFO in hertz. Defaults to 1.0hz."""
         return self._note.bend.b.rate
-    
+
     @vibrato_rate.setter
-    def vibrato_rate(self, value:float) -> None:
+    def vibrato_rate(self, value: float) -> None:
         self._note.bend.b.rate = value
 
     @property
@@ -232,22 +229,22 @@ class Oscillator(synthvoice.Voice):
         :attr:`bend`. Defaults to 0.0.
         """
         return self._note.bend.b.scale
-    
+
     @vibrato_depth.setter
     def vibrato_depth(self, value):
         self._note.bend.b.scale = value
 
     @property
-    def waveform(self) -> ReadableBuffer|None:
+    def waveform(self) -> ReadableBuffer | None:
         """The waveform of the oscillator."""
         return self._note.waveform
-    
+
     @waveform.setter
-    def waveform(self, value:ReadableBuffer|None) -> None:
+    def waveform(self, value: ReadableBuffer | None) -> None:
         self._note.waveform = value
         self._apply_waveform_loop()
 
-    def _set_waveform_loop(self, value:tuple[float, float]) -> None:
+    def _set_waveform_loop(self, value: tuple[float, float]) -> None:
         start = min(max(value[0], 0.0), 1.0)
         end = min(max(value[1], start), 1.0)
         self._waveform_loop = (start, end)
@@ -256,8 +253,16 @@ class Oscillator(synthvoice.Voice):
     def _apply_waveform_loop(self) -> None:
         if self._note.waveform is not None and len(self._note.waveform) >= 2:
             waveform_length = len(self._note.waveform)
-            self._note.waveform_loop_start = min(max(int(self._waveform_loop[0] * waveform_length), 0), waveform_length - 2)
-            self._note.waveform_loop_end = min(max(int(self._waveform_loop[1] * waveform_length), self._note.waveform_loop_start + 2), waveform_length)
+            self._note.waveform_loop_start = min(
+                max(int(self._waveform_loop[0] * waveform_length), 0), waveform_length - 2
+            )
+            self._note.waveform_loop_end = min(
+                max(
+                    int(self._waveform_loop[1] * waveform_length),
+                    self._note.waveform_loop_start + 2,
+                ),
+                waveform_length,
+            )
 
     @property
     def waveform_loop(self) -> tuple[float, float]:
@@ -266,9 +271,9 @@ class Oscillator(synthvoice.Voice):
         full range of the waveform.
         """
         return self._waveform_loop
-    
+
     @waveform_loop.setter
-    def waveform_loop(self, value:tuple[float, float]) -> None:
+    def waveform_loop(self, value: tuple[float, float]) -> None:
         self._set_waveform_loop(value)
 
     @property
@@ -277,18 +282,18 @@ class Oscillator(synthvoice.Voice):
         oscillator inaudible. Defaults to 1.0.
         """
         return self._note.amplitude.offset
-    
+
     @amplitude.setter
-    def amplitude(self, value:float) -> None:
+    def amplitude(self, value: float) -> None:
         self._note.amplitude.offset = value
 
     @property
     def tremolo_rate(self) -> float:
         """The rate of the amplitude LFO in hertz. Defaults to 1.0hz."""
         return self._note.amplitude.rate
-    
+
     @tremolo_rate.setter
-    def tremolo_rate(self, value:float) -> None:
+    def tremolo_rate(self, value: float) -> None:
         self._note.amplitude.rate = value
 
     @property
@@ -297,9 +302,9 @@ class Oscillator(synthvoice.Voice):
         0.0.
         """
         return self._note.amplitude.scale
-    
+
     @tremolo_depth.setter
-    def tremolo_depth(self, value:float) -> None:
+    def tremolo_depth(self, value: float) -> None:
         self._note.amplitude.scale = value
 
     @property
@@ -308,18 +313,18 @@ class Oscillator(synthvoice.Voice):
         1.0 (right). Defaults to 0.0.
         """
         return self._note.panning.offset
-    
+
     @pan.setter
-    def pan(self, value:float) -> None:
+    def pan(self, value: float) -> None:
         self._note.panning.offset = value
 
     @property
     def pan_rate(self) -> float:
         """The rate of the panning LFO in hertz. Defaults to 1.0."""
         return self._note.panning.rate
-    
+
     @pan_rate.setter
-    def pan_rate(self, value:float) -> None:
+    def pan_rate(self, value: float) -> None:
         self._note.panning.rate = value
 
     @property
@@ -328,18 +333,18 @@ class Oscillator(synthvoice.Voice):
         Negative values are allowed and will flip the phase of the LFO. Defaults to 0.0.
         """
         return self._note.panning.scale
-    
+
     @pan_depth.setter
-    def pan_depth(self, value:float) -> None:
+    def pan_depth(self, value: float) -> None:
         self._note.panning.scale = value
 
     def _update_envelope(self):
         mod = self._get_velocity_mod()
         self._note.envelope = synthio.Envelope(
             attack_time=self._attack_time,
-            attack_level=mod*self._attack_level,
+            attack_level=mod * self._attack_level,
             decay_time=self._decay_time,
-            sustain_level=mod*self._sustain_level,
+            sustain_level=mod * self._sustain_level,
             release_time=self._release_time,
         )
 
@@ -349,9 +354,9 @@ class Oscillator(synthvoice.Voice):
         Defaults to 0.0s.
         """
         return self._attack_time
-    
+
     @attack_time.setter
-    def attack_time(self, value:float) -> None:
+    def attack_time(self, value: float) -> None:
         self._attack_time = max(value, 0.0)
         self._update_envelope()
 
@@ -361,21 +366,21 @@ class Oscillator(synthvoice.Voice):
         relative value of :attr:`amplitude` from 0.0 to 1.0. Defaults to 1.0.
         """
         return self._attack_level
-    
+
     @attack_level.setter
-    def attack_level(self, value:float) -> None:
+    def attack_level(self, value: float) -> None:
         self._attack_level = min(max(value, 0.0), 1.0)
         self._update_envelope()
-    
+
     @property
     def decay_time(self) -> float:
         """The rate of decay after reaching the :attr:`attack_level` of the amplitude envelope in
         seconds. Must be greater than 0.0s. Defaults to 0.0s.
         """
         return self._decay_time
-    
+
     @decay_time.setter
-    def decay_time(self, value:float) -> None:
+    def decay_time(self, value: float) -> None:
         self._decay_time = max(value, 0.0)
         self._update_envelope()
 
@@ -386,9 +391,9 @@ class Oscillator(synthvoice.Voice):
         until :method:`release` is called. Defaults to 0.75.
         """
         return self._sustain_level
-    
+
     @sustain_level.setter
-    def sustain_level(self, value:float) -> None:
+    def sustain_level(self, value: float) -> None:
         self._sustain_level = min(max(value, 0.0), 1.0)
         self._update_envelope()
 
@@ -398,15 +403,17 @@ class Oscillator(synthvoice.Voice):
         seconds. Must be greater than 0.0s. Defaults to 0.0s.
         """
         return self._release_time
-    
+
     @release_time.setter
-    def release_time(self, value:float) -> None:
+    def release_time(self, value: float) -> None:
         self._release_time = max(value, 0.0)
         self._update_envelope()
 
     def _get_filter_frequency(self) -> float:
-        return max(self._filter_frequency + self._filter_envelope.value + self._filter_lfo.value, 50)
-    
+        return max(
+            self._filter_frequency + self._filter_envelope.value + self._filter_lfo.value, 50
+        )
+
     @property
     def filter_attack_time(self) -> float:
         """The rate of attack of the filter frequency envelope from :attr:`filter_frequency` to
@@ -414,9 +421,9 @@ class Oscillator(synthvoice.Voice):
         Defaults to 0.0s.
         """
         return self._filter_envelope.attack_time
-    
+
     @filter_attack_time.setter
-    def filter_attack_time(self, value:float) -> None:
+    def filter_attack_time(self, value: float) -> None:
         self._filter_envelope.attack_time = value
 
     @property
@@ -426,9 +433,9 @@ class Oscillator(synthvoice.Voice):
         Defaults to 0hz.
         """
         return self._filter_envelope.amount
-    
+
     @filter_amount.setter
-    def filter_amount(self, value:float) -> None:
+    def filter_amount(self, value: float) -> None:
         self._filter_envelope.amount = value
 
     @property
@@ -437,30 +444,29 @@ class Oscillator(synthvoice.Voice):
         seconds. Must be greater than 0.0s. Defaults to 0.0s.
         """
         return self._filter_envelope.release_time
-    
+
     @filter_release_time.setter
-    def filter_release_time(self, value:float) -> None:
+    def filter_release_time(self, value: float) -> None:
         self._filter_envelope.release_time = value
-        
+
     @property
     def filter_rate(self) -> float:
-        """The rate in hertz of the filter frequency LFO. Defaults to 1.0hz.
-        """
+        """The rate in hertz of the filter frequency LFO. Defaults to 1.0hz."""
         return self._filter_lfo.rate
-    
+
     @filter_rate.setter
-    def filter_rate(self, value:float) -> None:
+    def filter_rate(self, value: float) -> None:
         self._filter_lfo.rate = value
-        
+
     @property
     def filter_depth(self) -> float:
         """The maximum level of the filter LFO to add to :attr:`filter_frequency` in hertz in both
         positive and negative directions. Defaults to 0.0hz.
         """
         return self._filter_lfo.scale
-    
+
     @filter_depth.setter
-    def filter_depth(self, value:float) -> None:
+    def filter_depth(self, value: float) -> None:
         self._filter_lfo.scale = value
 
     def update(self) -> None:

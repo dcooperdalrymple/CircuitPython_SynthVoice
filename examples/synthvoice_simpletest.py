@@ -3,11 +3,12 @@
 #
 # SPDX-License-Identifier: Unlicense
 
+import time
+
 import audiopwmio
 import board
 import digitalio
 import synthio
-import time
 
 from synthvoice.oscillator import Oscillator
 

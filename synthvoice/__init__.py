@@ -30,8 +30,8 @@ Implementation Notes
 __version__ = "0.0.0+auto.0"
 __repo__ = "https://github.com/dcooperdalrymple/CircuitPython_SynthVoice.git"
 
-import ulab.numpy as np
 import synthio
+import ulab.numpy as np
 from micropython import const
 
 
@@ -44,23 +44,24 @@ class LerpBlockInput:
     :param value: The initial value. Defaults to 0.0.
     """
 
-    def __init__(self, rate:float=0.05, value:float=0.0):
-        """Constructor method
-        """
+    def __init__(self, rate: float = 0.05, value: float = 0.0):
+        """Constructor method"""
         self._position = synthio.LFO(
             waveform=np.linspace(-16385, 16385, num=2, dtype=np.int16),
-            rate=1/max(rate, 0.001),
+            rate=1 / max(rate, 0.001),
             scale=1,
             offset=0.5,
-            once=True
+            once=True,
         )
-        self._lerp = synthio.Math(synthio.MathOperation.CONSTRAINED_LERP, value, value, self._position)
+        self._lerp = synthio.Math(
+            synthio.MathOperation.CONSTRAINED_LERP, value, value, self._position
+        )
 
     @property
     def block(self) -> synthio.BlockInput:
         """Get the block input to be used with a :class:`synthio.Note` object."""
         return self._lerp
-    
+
     @property
     def blocks(self) -> tuple[synthio.BlockInput]:
         """Get all :class:`synthio.BlockInput` objects. In order for it to function properly, these
@@ -68,7 +69,7 @@ class LerpBlockInput:
         synth.blocks.append(...).
         """
         return (self._position, self._lerp)
-    
+
     @property
     def value(self) -> float:
         """Get the current value of the linear interpolation output or set a new value to begin
@@ -76,9 +77,9 @@ class LerpBlockInput:
         retrigger.
         """
         return self._lerp.value
-    
+
     @value.setter
-    def value(self, value:float) -> None:
+    def value(self, value: float) -> None:
         self._lerp.a = self._lerp.value
         self._lerp.b = value
         self._position.retrigger()
@@ -86,11 +87,11 @@ class LerpBlockInput:
     @property
     def rate(self) -> float:
         """The rate of change of interpolation in seconds. Must be greater than 0.001s."""
-        return 1/self._position.rate
-    
+        return 1 / self._position.rate
+
     @rate.setter
-    def rate(self, value:float) -> None:
-        self._position.rate = 1/max(value, 0.001)
+    def rate(self, value: float) -> None:
+        self._position.rate = 1 / max(value, 0.001)
 
 
 class AREnvelope:
@@ -106,7 +107,7 @@ class AREnvelope:
         arbitrary and can be positive or negative, but 0.0 will result in no change. Default is 1.0.
     """
 
-    def __init__(self, attack_time:float=0.05, release_time:float=0.05, amount:float=1.0):
+    def __init__(self, attack_time: float = 0.05, release_time: float = 0.05, amount: float = 1.0):
         self._pressed = False
         self._lerp = LerpBlockInput()
         self._attack_time = attack_time
@@ -117,7 +118,7 @@ class AREnvelope:
     def block(self) -> synthio.BlockInput:
         """Get the :class:`synthio.BlockInput` object to be applied to a parameter."""
         return self._lerp.block
-    
+
     @property
     def blocks(self) -> tuple[synthio.BlockInput]:
         """Get all :class:`synthio.BlockInput` objects. In order for it to function properly, these
@@ -125,26 +126,26 @@ class AREnvelope:
         synth.blocks.append(...).
         """
         return self._lerp.blocks
-    
+
     @property
     def value(self) -> float:
         """Get the current value of the envelope."""
         return self._lerp.value
-    
+
     @property
     def pressed(self) -> bool:
         """Whether or not the envelope is currently in a "pressed" state."""
         return self._pressed
-    
+
     @property
     def attack_time(self) -> float:
         """The rate of attack in seconds. When changing if the envelope is currently in the attack
         state, it will update the rate immediately. Must be greater than 0.0s.
         """
         return self._attack_time
-    
+
     @attack_time.setter
-    def attack_time(self, value:float) -> None:
+    def attack_time(self, value: float) -> None:
         self._attack_time = value
         if self._pressed:
             self._lerp.rate = self._attack_time
@@ -155,13 +156,13 @@ class AREnvelope:
         will update the rate immediately. Must be greater than 0.0s.
         """
         return self._release_time
-    
+
     @release_time.setter
-    def release_time(self, value:float) -> None:
+    def release_time(self, value: float) -> None:
         self._release_time = value
         if not self._pressed:
             self._lerp.rate = self._release_time
-    
+
     @property
     def amount(self) -> float:
         """The level at which to rise or fall to when the envelope is pressed (or sustained value).
@@ -170,9 +171,9 @@ class AREnvelope:
         change.
         """
         return self._amount
-    
+
     @amount.setter
-    def amount(self, value:float) -> None:
+    def amount(self, value: float) -> None:
         self._amount = value
         if self._pressed:
             self._lerp.value = self._amount
@@ -212,22 +213,22 @@ class FilterType:
 class Voice:
     """A "voice" to be used with a :class:`synthio.Synthesizer` object. Manages one or multiple
     :class:`synthio.Note` objects.
-    
+
     The standard :class:`Voice` class is not meant to be used directly but instead inherited by one
     of the provided voice classes or within a custom class. This class helps manage note frequency,
     velocity, and filter state and provides an interface with a :class:`synthio.Synthesizer` object.
 
     :param synthesizer: The :class:`synthio.Synthesizer` object this voice will be used with.
     """
-    
-    def __init__(self, synthesizer:synthio.Synthesizer=None):
+
+    def __init__(self, synthesizer: synthio.Synthesizer = None):
         self._synthesizer = synthesizer
 
         self._notenum = -1
         self._velocity = 0.0
 
         self._filter_type = FilterType.LOWPASS
-        self._filter_frequency = synthesizer.sample_rate/2
+        self._filter_frequency = synthesizer.sample_rate / 2
         self._filter_resonance = 0.7071067811865475
         self._filter_buffer = (-1, 0.0, 0.0)
 
@@ -241,13 +242,13 @@ class Voice:
     def notes(self) -> tuple[synthio.Note]:
         """Get all :class:`synthio.Note` objects attributed to this voice."""
         return tuple()
-    
+
     @property
     def blocks(self) -> tuple[synthio.BlockInput]:
         """Get all :class:`synthio.BlockInput` objects attributed to this voice."""
         return tuple()
 
-    def press(self, notenum:int, velocity:float|int=1.0) -> bool:
+    def press(self, notenum: int, velocity: float | int = 1.0) -> bool:
         """Update the voice to be "pressed" with a specific MIDI note number and velocity. Returns
         whether or not a new note is received to avoid unnecessary retriggering. The envelope is
         updated with the new velocity value regardless. Updating :class:`synthio.Note` objects
@@ -263,16 +264,18 @@ class Voice:
             velocity /= 127
         self._velocity = velocity
         self._update_envelope()
-        if notenum == self._notenum: return False
+        if notenum == self._notenum:
+            return False
         self._notenum = notenum
         self._synthesizer.press(self.notes)
         return True
-    
+
     def release(self) -> bool:
         """Release the voice if a note is currently being played. Returns `True` if a note was
         released and `False` if not.
         """
-        if not self.pressed: return False
+        if not self.pressed:
+            return False
         self._notenum = 0
         self._synthesizer.release(self.notes)
         return True
@@ -281,7 +284,7 @@ class Voice:
     def pressed(self) -> bool:
         """Whether or not the voice is currently in a "pressed" state."""
         return self._notenum > 0
-    
+
     @property
     def amplitude(self) -> float:
         """The volume of the voice from 0.0 to 1.0. This method should be implemented within the
@@ -290,12 +293,12 @@ class Voice:
         pass
 
     @amplitude.setter
-    def amplitude(self, value:float) -> None:
+    def amplitude(self, value: float) -> None:
         pass
 
     def _get_velocity_mod(self) -> float:
         return 1.0 - (1.0 - min(max(self._velocity, 0.0), 1.0)) * self._velocity_amount
-    
+
     @property
     def velocity_amount(self) -> float:
         """The amount that this voice will respond to note velocity, from 0.0 to 1.0. A value of 0.0
@@ -303,9 +306,9 @@ class Voice:
         velocity. Whereas a value of 1.0 represents full response to velocity.
         """
         return self._velocity_amount
-    
+
     @velocity_amount.setter
-    def velocity_amount(self, value:float) -> None:
+    def velocity_amount(self, value: float) -> None:
         self._velocity_amount = min(max(value, 0.0), 1.0)
 
     def _update_envelope(self) -> None:
@@ -313,7 +316,7 @@ class Voice:
 
     def _get_filter_frequency(self) -> float:
         return self._filter_frequency
-    
+
     def _update_filter(self) -> None:
         current = (self._filter_type, self._get_filter_frequency(), self._filter_resonance)
         if self._filter_buffer != current:
@@ -327,7 +330,7 @@ class Voice:
                 biquad = self._synthesizer.high_pass_filter
                 if current[1] <= 50:
                     biquad = None
-            else: # FilterType.BANDPASS
+            else:  # FilterType.BANDPASS
                 biquad = self._synthesizer.band_pass_filter
 
             if biquad is not None:
@@ -341,9 +344,9 @@ class Voice:
         :const:`FilterType.LOWPASS`.
         """
         return self._filter_type
-    
+
     @filter_type.setter
-    def filter_type(self, value:int) -> None:
+    def filter_type(self, value: int) -> None:
         self._filter_type = value
         self._update_filter()
 
@@ -353,19 +356,21 @@ class Voice:
         the sample rate (the Nyquist frequency).
         """
         return self._filter_frequency
-    
+
     @filter_frequency.setter
-    def filter_frequency(self, value:float) -> None:
-        self._filter_frequency = min(max(value, 0), self._synthesizer.sample_rate/2)
+    def filter_frequency(self, value: float) -> None:
+        self._filter_frequency = min(max(value, 0), self._synthesizer.sample_rate / 2)
         self._update_filter()
 
     @property
     def filter_resonance(self) -> float:
-        """The resonance of the filter (or Q factor) as a number starting from 0.7. Defaults to 0.7."""
+        """The resonance of the filter (or Q factor) as a number starting from 0.7. Defaults to
+        0.7.
+        """
         return self._filter_resonance
-    
+
     @filter_resonance.setter
-    def filter_resonance(self, value:float) -> None:
+    def filter_resonance(self, value: float) -> None:
         self._filter_resonance = max(value, 0.7071067811865475)
         self._update_filter()
 

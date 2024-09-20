@@ -8,11 +8,11 @@ import audiopwmio
 import board
 import digitalio
 import synthio
+import synthwaveform
 import usb_midi
 from adafruit_midi.note_off import NoteOff
 from adafruit_midi.note_on import NoteOn
 
-import synthwaveform
 from synthvoice import FilterType
 from synthvoice.sample import Sample
 

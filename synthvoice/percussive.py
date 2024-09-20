@@ -3,10 +3,12 @@
 #
 # SPDX-License-Identifier: MIT
 
-import ulab.numpy as np
 import synthio
-import synthvoice
 import synthwaveform
+import ulab.numpy as np
+
+import synthvoice
+
 
 class Voice(synthvoice.Voice):
     """Base single-shot "analog" drum voice used by other classes within the percussive module.
@@ -26,7 +28,16 @@ class Voice(synthvoice.Voice):
         :class:`numpy.int16` arrays. Defaults to a square waveform for each note.
     """
 
-    def __init__(self, synthesizer:synthio.Synthesizer=None, count:int=3, filter_type:int=synthvoice.FilterType.LOWPASS, filter_frequency:float=20000.0, frequencies:tuple[float]=[], times:tuple[float]=[], waveforms:tuple[np.ndarray]=[]):
+    def __init__(  # noqa: PLR0913
+        self,
+        synthesizer: synthio.Synthesizer = None,
+        count: int = 3,
+        filter_type: int = synthvoice.FilterType.LOWPASS,
+        filter_frequency: float = 20000.0,
+        frequencies: tuple[float] = [],
+        times: tuple[float] = [],
+        waveforms: tuple[np.ndarray] = [],
+    ):
         super().__init__(synthesizer)
 
         if not frequencies:
@@ -42,15 +53,14 @@ class Voice(synthvoice.Voice):
             rate=20.0,
             scale=0.3,
             offset=0.33,
-            once=True
+            once=True,
         )
 
         self._notes = []
         for i in range(count):
-            self._notes.append(synthio.Note(
-                frequency=frequencies[i % len(frequencies)],
-                bend=self._lfo
-            ))
+            self._notes.append(
+                synthio.Note(frequency=frequencies[i % len(frequencies)], bend=self._lfo)
+            )
         self._notes = tuple(self._notes)
 
         self.times = times
@@ -63,12 +73,12 @@ class Voice(synthvoice.Voice):
     def notes(self) -> tuple[synthio.Note]:
         """Get all :class:`synthio.Note` objects attributed to this voice."""
         return self._notes
-    
+
     @property
     def blocks(self) -> tuple[synthio.BlockInput]:
         """Get all :class:`synthio.BlockInput` objects attributed to this voice."""
         return tuple([self._lfo])
-    
+
     @property
     def frequencies(self) -> tuple[float]:
         """The base frequencies in hertz."""
@@ -78,7 +88,7 @@ class Voice(synthvoice.Voice):
         return tuple(value)
 
     @frequencies.setter
-    def frequencies(self, value:tuple[float]|float) -> None:
+    def frequencies(self, value: tuple[float] | float) -> None:
         if not isinstance(value, tuple):
             value = tuple([value])
         if value:
@@ -89,10 +99,11 @@ class Voice(synthvoice.Voice):
     def times(self) -> tuple[float]:
         """The decay times of the amplitude envelopes."""
         return self._times
-    
+
     @times.setter
-    def times(self, value:tuple[float]|float) -> None:
-        if not isinstance(value, tuple): value = tuple([value])
+    def times(self, value: tuple[float] | float) -> None:
+        if not isinstance(value, tuple):
+            value = tuple([value])
         if value:
             self._times = value
             self._update_envelope()
@@ -106,14 +117,15 @@ class Voice(synthvoice.Voice):
         for note in self.notes:
             value.append(note.waveform)
         return tuple(value)
-    
+
     @waveforms.setter
-    def waveforms(self, value:tuple[np.ndarray]) -> None:
-        if not value: return
+    def waveforms(self, value: tuple[np.ndarray]) -> None:
+        if not value:
+            return
         for i, note in enumerate(self.notes):
             note.waveform = value[i % len(value)]
 
-    def press(self, velocity:float|int=1.0) -> bool:
+    def press(self, velocity: float | int = 1.0) -> bool:
         """Update the voice to be "pressed". For percussive voices, this will begin the playback of
         the voice.
 
@@ -123,21 +135,21 @@ class Voice(synthvoice.Voice):
             return False
         self._lfo.retrigger()
         return True
-    
+
     def release(self) -> bool:
         """Release the voice. :class:`synthvoice.percussive.Voice` objects typically don't implement
         this operation because of their "single-shot" nature and will always return `False`.
         """
         super().release()
         return False
-    
+
     @property
     def amplitude(self) -> float:
         """The volume of the voice from 0.0 to 1.0."""
         return self.notes[0].amplitude
-    
+
     @amplitude.setter
-    def amplitude(self, value:float) -> None:
+    def amplitude(self, value: float) -> None:
         for note in self.notes:
             note.amplitude = min(max(value, 0.0), 1.0)
 
@@ -148,26 +160,27 @@ class Voice(synthvoice.Voice):
                 attack_time=0.0,
                 decay_time=self._times[i % len(self._times)],
                 release_time=0.0,
-                attack_level=mod*self._attack_level,
-                sustain_level=0.0
+                attack_level=mod * self._attack_level,
+                sustain_level=0.0,
             )
 
     @property
     def attack_level(self) -> float:
         """The level of attack of the amplitude envelope."""
         return self._attack_level
-    
+
     @attack_level.setter
-    def attack_level(self, value:float) -> None:
+    def attack_level(self, value: float) -> None:
         self._attack_level = value
         self._update_envelope()
+
 
 class Kick(Voice):
     """A single-shot "analog" drum voice representing a low frequency sine-wave kick drum."""
 
-    def __init__(self, synthesizer:synthio.Synthesizer=None):
-        sine=synthwaveform.sine()
-        offset_sine=synthwaveform.sine(phase=0.5)
+    def __init__(self, synthesizer: synthio.Synthesizer = None):
+        sine = synthwaveform.sine()
+        offset_sine = synthwaveform.sine(phase=0.5)
         super().__init__(
             synthesizer,
             count=3,
@@ -177,16 +190,18 @@ class Kick(Voice):
             waveforms=(offset_sine, sine, offset_sine),
         )
 
+
 class Snare(Voice):
-    """A single-shot "analog" drum voice representing a snare drum using sine and noise waveforms.
+    """A single-shot "analog" drum voice representing a snare drum using sine and noise
+    waveforms.
     """
 
-    def __init__(self, synthesizer:synthio.Synthesizer=None):
-        sine_noise=synthwaveform.mix(
+    def __init__(self, synthesizer: synthio.Synthesizer = None):
+        sine_noise = synthwaveform.mix(
             synthwaveform.sine(),
             (synthwaveform.noise(), 0.5),
         )
-        offset_sine_noise=synthwaveform.mix(
+        offset_sine_noise = synthwaveform.mix(
             synthwaveform.sine(phase=0.5),
             (synthwaveform.noise(), 0.5),
         )
@@ -199,6 +214,7 @@ class Snare(Voice):
             waveforms=(sine_noise, offset_sine_noise, offset_sine_noise),
         )
 
+
 class Hat(Voice):
     """The base class to create hi-hat drum sounds with variable timing.
 
@@ -206,14 +222,14 @@ class Hat(Voice):
     :param max_time: The maximum decay time in seconds. Must be greater than `min_time`.
     """
 
-    def __init__(self, min_time:float, max_time:float, synthesizer:synthio.Synthesizer=None):
+    def __init__(self, min_time: float, max_time: float, synthesizer: synthio.Synthesizer = None):
         super().__init__(
             synthesizer,
             count=3,
             filter_type=synthvoice.FilterType.HIGHPASS,
             filter_frequency=9500.0,
             frequencies=(90, 135, 165.0),
-            waveforms=[synthwaveform.noise()]
+            waveforms=[synthwaveform.noise()],
         )
         self._min_time = max(min_time, 0.0)
         self._max_time = max(max_time, self._min_time)
@@ -225,22 +241,26 @@ class Hat(Voice):
         minimum and maximum times.
         """
         return self._decay
-    
+
     @decay.setter
-    def decay(self, value:float) -> None:
+    def decay(self, value: float) -> None:
         value = min(max(value, 0.0), 1.0) * (self._max_time - self._min_time) + self._min_time
         self.times = (value, max(value - 0.02, 0.0), value)
 
+
 class ClosedHat(Hat):
-    """A single-shot "analog" drum voice representing a closed hi-hat cymbal using noise waveforms.
+    """A single-shot "analog" drum voice representing a closed hi-hat cymbal using noise
+    waveforms.
     """
 
-    def __init__(self, synthesizer:synthio.Synthesizer=None):
+    def __init__(self, synthesizer: synthio.Synthesizer = None):
         super().__init__(0.025, 0.2, synthesizer)
 
+
 class OpenHat(Hat):
-    """A single-shot "analog" drum voice representing an open hi-hat cymbal using noise waveforms.
+    """A single-shot "analog" drum voice representing an open hi-hat cymbal using noise
+    waveforms.
     """
 
-    def __init__(self, synthesizer:synthio.Synthesizer=None):
+    def __init__(self, synthesizer: synthio.Synthesizer = None):
         super().__init__(0.25, 1.0, synthesizer)
