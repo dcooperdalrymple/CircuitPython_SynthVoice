@@ -26,6 +26,9 @@ voices = (
     synthvoice.percussive.Snare(synth),
     synthvoice.percussive.ClosedHat(synth),
     synthvoice.percussive.OpenHat(synth),
+    synthvoice.percussive.HighTom(synth),
+    synthvoice.percussive.MidTom(synth),
+    synthvoice.percussive.FloorTom(synth),
 )
 
 midi = adafruit_midi.MIDI(

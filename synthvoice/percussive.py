@@ -261,7 +261,7 @@ class ClosedHat(Hat):
     """
 
     def __init__(self, synthesizer: synthio.Synthesizer):
-        super().__init__(0.025, 0.2, synthesizer)
+        super().__init__(synthesizer, 0.025, 0.2)
 
 
 class OpenHat(Hat):
@@ -270,4 +270,83 @@ class OpenHat(Hat):
     """
 
     def __init__(self, synthesizer: synthio.Synthesizer):
-        super().__init__(0.25, 1.0, synthesizer)
+        super().__init__(synthesizer, 0.25, 1.0)
+
+
+class Tom(Voice):
+    """The base class to create tom drum sounds with variable timing and frequency.
+
+    :param min_time: The minimum decay time in seconds. Must be greater than 0.0s.
+    :param max_time: The maximum decay time in seconds. Must be greater than min_time.
+    :param min_frequency: The minimum frequency in hertz.
+    :param max_frequency: The maximum frequency in hertz.
+    """
+
+    def __init__(  # noqa: PLR0913
+        self,
+        synthesizer: synthio.Synthesizer,
+        min_time: float,
+        max_time: float,
+        min_frequency: float,
+        max_frequency: float,
+    ):
+        super().__init__(
+            synthesizer,
+            count=2,
+            filter_frequency=4000.0,
+            waveforms=(synthwaveform.triangle(), synthwaveform.noise(amplitude=0.25)),
+        )
+        self._min_time = max(min_time, 0.0)
+        self._max_time = max(max_time, self._min_time)
+        self.decay = 0.5
+
+        self._min_frequency = max(min_frequency, 0.0)
+        self._max_frequency = max(max_frequency, self._min_frequency)
+        self.frequency = 0.5
+
+    @property
+    def decay(self) -> float:
+        """The decay time of the tom drum using a relative value from 0.0 to 1.0 and the predefined
+        minimum and maximum times.
+        """
+        return self._decay
+
+    @decay.setter
+    def decay(self, value: float) -> None:
+        self._decay = min(max(value, 0.0), 1.0)
+        self.times = (self._decay * (self._max_time - self._min_time) + self._min_time, 0.025)
+
+    @property
+    def frequency(self) -> float:
+        """The note frequency of the tom drum using a relative value from 0.0 to 1.0 and the
+        predefined minimum and maximum frequencies.
+        """
+        return self._frequency
+
+    @frequency.setter
+    def frequency(self, value: float) -> None:
+        self._frequency = min(max(value, 0.0), 1.0)
+        self.frequencies = (
+            self._frequency * (self._max_frequency - self._min_frequency) + self._min_frequency
+        )
+
+
+class HighTom(Tom):
+    """A single-shot "analog" drum voice representing a high or left rack tom drum."""
+
+    def __init__(self, synthesizer: synthio.Synthesizer):
+        super().__init__(synthesizer, 0.1, 0.45, 261.63, 293.66)
+
+
+class MidTom(Tom):
+    """A single-shot "analog" drum voice representing a middle or right rack tom drum."""
+
+    def __init__(self, synthesizer: synthio.Synthesizer):
+        super().__init__(synthesizer, 0.1, 0.45, 185.00, 207.65)
+
+
+class FloorTom(Tom):
+    """A single-shot "analog" drum voice representing a low or floor tom drum."""
+
+    def __init__(self, synthesizer: synthio.Synthesizer):
+        super().__init__(synthesizer, 0.1, 0.65, 116.54, 146.83)
