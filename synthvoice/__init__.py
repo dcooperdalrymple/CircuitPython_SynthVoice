@@ -49,7 +49,7 @@ class LerpBlockInput:
         """
         self._position = synthio.LFO(
             waveform=np.linspace(-16385, 16385, num=2, dtype=np.int16),
-            rate=1/rate,
+            rate=1/max(rate, 0.001),
             scale=1,
             offset=0.5,
             once=True
@@ -137,14 +137,14 @@ class AREnvelope:
         return self._pressed
     
     @property
-    def attack(self) -> float:
+    def attack_time(self) -> float:
         """The rate of attack in seconds. When changing if the envelope is currently in the attack
         state, it will update the rate immediately. Must be greater than 0.0s.
         """
         return self._attack_time
     
-    @attack.setter
-    def attack(self, value:float) -> None:
+    @attack_time.setter
+    def attack_time(self, value:float) -> None:
         self._attack_time = value
         if self._pressed:
             self._lerp.rate = self._attack_time
@@ -270,8 +270,7 @@ class Voice:
     
     def release(self) -> bool:
         """Release the voice if a note is currently being played. Returns `True` if a note was
-        released and `False` if not. Updating :class:`synthio.Note` objects should typically occur
-        within the child class after calling this method and checking its return value.
+        released and `False` if not.
         """
         if not self.pressed: return False
         self._notenum = 0
@@ -280,6 +279,7 @@ class Voice:
 
     @property
     def pressed(self) -> bool:
+        """Whether or not the voice is currently in a "pressed" state."""
         return self._notenum > 0
     
     @property

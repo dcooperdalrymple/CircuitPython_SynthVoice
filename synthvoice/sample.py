@@ -170,6 +170,15 @@ class Sample(synthvoice.oscillator.Oscillator):
         self._update_source_root()
 
     def press(self, notenum:int, velocity:float|int=1.0) -> bool:
+        """Update the voice to be "pressed" with a specific MIDI note number and velocity. Returns
+        whether or not a new note is received to avoid unnecessary retriggering. The envelope is
+        updated with the new velocity value regardless.
+
+        :param notenum: The MIDI note number representing the note frequency.
+        :param velocity: The strength at which the note was received, between 0.0 and 1.0. Defaults
+            to 1.0. If an :class:`int` value is used, it will be divided by 127 assuming that it is
+            a midi velocity value.
+        """
         if self._note.waveform is None or not super().press(notenum, velocity):
             return False
         if not self._looping:
@@ -185,14 +194,14 @@ class Sample(synthvoice.oscillator.Oscillator):
 
     @property
     def waveform_loop(self) -> tuple[float, float]:
+        """The start and stop points of which to loop the sample as a tuple of two floats from 0.0
+        to 1.0. The end value must be greater than the start value. Default is (0.0, 1.0) or the
+        full length of the sample.
+        """
         return self._waveform_loop
     
     @waveform_loop.setter
     def waveform_loop(self, value:tuple[float, float]) -> None:
-        """Set the looping parameters of the sample data. Both start and end parameters are relative
-        to the beginning and end of sample data (0.0 - 1.0). Loop points must be at least greater
-        than 2 samples of each other to properly adjust sample tuning.
-        """
         self._set_waveform_loop(value)
 
         if not self._note.waveform:
@@ -211,6 +220,7 @@ class Sample(synthvoice.oscillator.Oscillator):
         self._note.frequency = self._note.frequency * pow(2, self._source_tune + self._loop_tune)
 
     def update(self):
+        """Update filter modulation and sample timing when :attr:`looping` is set to `False`."""
         super().update()
         if not self._looping and not self._start is None and time.monotonic() - self._start >= self.duration:
             self.release()

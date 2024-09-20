@@ -61,10 +61,12 @@ class Voice(synthvoice.Voice):
 
     @property
     def notes(self) -> tuple[synthio.Note]:
+        """Get all :class:`synthio.Note` objects attributed to this voice."""
         return self._notes
     
     @property
     def blocks(self) -> tuple[synthio.BlockInput]:
+        """Get all :class:`synthio.BlockInput` objects attributed to this voice."""
         return tuple([self._lfo])
     
     @property
