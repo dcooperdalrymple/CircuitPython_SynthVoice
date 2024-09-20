@@ -6,6 +6,7 @@
 import math
 
 import synthio
+import ulab.numpy as np
 
 import synthvoice
 
@@ -59,6 +60,13 @@ class Oscillator(synthvoice.Voice):
             rate=0.0,
             value=0.0,
         )
+        self._pitch_slew_lfo = synthio.LFO(
+            waveform=np.array([32767, 0], dtype=np.int16),
+            rate=1 / 0.001,
+            scale=0.0,
+            offset=0.0,
+            once=True,
+        )
 
         self._attack_time = 0.0
         self._attack_level = 1.0
@@ -79,7 +87,11 @@ class Oscillator(synthvoice.Voice):
                 synthio.LFO(  # Vibrato
                     waveform=None, rate=1.0, scale=0.0, offset=0.0
                 ),
-                self._pitch_lerp.block,  # Pitch Bend Lerp
+                synthio.Math(
+                    synthio.MathOperation.SUM,
+                    self._pitch_slew_lfo,  # Pitch
+                    self._pitch_lerp.block,  # Pitch Bend Lerp
+                ),
             ),
             panning=synthio.LFO(waveform=None, rate=1.0, scale=0.0, offset=0.0),
         )
@@ -102,7 +114,9 @@ class Oscillator(synthvoice.Voice):
             + (
                 self._filter_lfo,
                 self._note.amplitude,
+                self._pitch_slew_lfo,
                 self._note.bend,
+                self._note.bend.c,
                 self._note.panning,
             )
         )
@@ -119,6 +133,7 @@ class Oscillator(synthvoice.Voice):
             return False
         self.frequency = synthio.midi_to_hz(notenum)
         self._filter_envelope.press()
+        self._pitch_slew_lfo.retrigger()
         return True
 
     def release(self) -> bool:
@@ -213,6 +228,29 @@ class Oscillator(synthvoice.Voice):
     def bend(self, value: float) -> None:
         self._bend = value
         self._update_pitch_bend()
+
+    @property
+    def pitch_slew_time(self) -> float:
+        """The amount of time in seconds it takes for the voice to reach the desired pitch after
+        starting with a relative :attr:`slew` adjustment. Must be greater than 0.0s. Defaults to
+        0.0s.
+        """
+        return 1 / self._pitch_slew_lfo.rate
+
+    @pitch_slew_time.setter
+    def pitch_slew_time(self, value: float) -> None:
+        self._pitch_slew_lfo.rate = 1 / max(value, 0.001)
+
+    @property
+    def pitch_slew(self) -> float:
+        """The pitch offset in octaves at which the voice starts relative to the desired frequency
+        when first pressed. Can be either positive or negative. Defaults to 0.0.
+        """
+        return self._pitch_slew_lfo.scale
+
+    @pitch_slew.setter
+    def pitch_slew(self, value: float) -> None:
+        self._pitch_slew_lfo.scale = value
 
     @property
     def vibrato_rate(self) -> float:
