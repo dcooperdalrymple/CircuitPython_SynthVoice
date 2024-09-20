@@ -221,19 +221,25 @@ class Snare(Voice):
         )
 
 
-class Hat(Voice):
-    """The base class to create hi-hat drum sounds with variable timing.
+class Cymbal(Voice):
+    """The base class to create cymbal sounds with variable timing.
 
     :param min_time: The minimum decay time in seconds. Must be greater than 0.0s.
     :param max_time: The maximum decay time in seconds. Must be greater than min_time.
     """
 
-    def __init__(self, synthesizer: synthio.Synthesizer, min_time: float, max_time: float):
+    def __init__(
+        self,
+        synthesizer: synthio.Synthesizer,
+        min_time: float,
+        max_time: float,
+        frequency: float = 9500.0,
+    ):
         super().__init__(
             synthesizer,
             count=3,
             filter_type=synthvoice.FilterType.HIGHPASS,
-            filter_frequency=9500.0,
+            filter_frequency=frequency,
             frequencies=(90, 135, 165.0),
             waveforms=synthwaveform.noise(),
         )
@@ -255,7 +261,7 @@ class Hat(Voice):
         self.times = (value, max(value - 0.02, 0.0), value)
 
 
-class ClosedHat(Hat):
+class ClosedHat(Cymbal):
     """A single-shot "analog" drum voice representing a closed hi-hat cymbal using noise
     waveforms.
     """
@@ -264,13 +270,20 @@ class ClosedHat(Hat):
         super().__init__(synthesizer, 0.025, 0.2)
 
 
-class OpenHat(Hat):
+class OpenHat(Cymbal):
     """A single-shot "analog" drum voice representing an open hi-hat cymbal using noise
     waveforms.
     """
 
     def __init__(self, synthesizer: synthio.Synthesizer):
         super().__init__(synthesizer, 0.25, 1.0)
+
+
+class Ride(Cymbal):
+    """A single-shot "analog" drum voice representing a ride cymbal using noise waveforms."""
+
+    def __init__(self, synthesizer: synthio.Synthesizer):
+        super().__init__(synthesizer, 0.5, 2.0, 18000.0)
 
 
 class Tom(Voice):

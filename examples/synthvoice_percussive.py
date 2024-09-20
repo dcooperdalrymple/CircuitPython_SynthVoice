@@ -29,6 +29,7 @@ voices = (
     synthvoice.percussive.HighTom(synth),
     synthvoice.percussive.MidTom(synth),
     synthvoice.percussive.FloorTom(synth),
+    synthvoice.percussive.Ride(synth),
 )
 
 midi = adafruit_midi.MIDI(
