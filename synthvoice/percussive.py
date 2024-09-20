@@ -138,8 +138,8 @@ class Voice(synthvoice.Voice):
 
         :param velocity: The strength at which the note was received, between 0.0 and 1.0.
         """
-        if not super().press(1, velocity):
-            return False
+        super().release()
+        super().press(1, velocity)
         self._lfo.retrigger()
         return True
 
@@ -147,7 +147,6 @@ class Voice(synthvoice.Voice):
         """Release the voice. :class:`synthvoice.percussive.Voice` objects typically don't implement
         this operation because of their "single-shot" nature and will always return `False`.
         """
-        super().release()
         return False
 
     @property
@@ -251,7 +250,8 @@ class Hat(Voice):
 
     @decay.setter
     def decay(self, value: float) -> None:
-        value = min(max(value, 0.0), 1.0) * (self._max_time - self._min_time) + self._min_time
+        self._decay = min(max(value, 0.0), 1.0)
+        value = self._decay * (self._max_time - self._min_time) + self._min_time
         self.times = (value, max(value - 0.02, 0.0), value)
 
 

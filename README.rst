@@ -103,8 +103,8 @@ Usage Example
     audio = audiopwmio.PWMAudioOut(board.A0)
     synth = synthio.Synthesizer()
     audio.play(synth)
-    voice = Oscillator(synth)
 
+    voice = Oscillator(synth)
     voice.press(60)
     time.sleep(1.0)
     voice.release()
