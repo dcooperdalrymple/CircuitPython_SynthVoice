@@ -30,32 +30,34 @@ voice.waveform = synthwaveform.mix(
 )
 
 # Frequency
-voice.glide = 0.25
+voice.glide = 0.5
 voice.coarse_tune = -1
 voice.fine_tune = 5
 voice.vibrato_depth = 1 / 12
 voice.vibrato_rate = 8.0
+voice.pitch_slew = -2.0
+voice.pitch_slew_time = 0.2
 
 # Envelope
-voice.attack_time = 0.5
+voice.attack_time = 0.0
 voice.attack_level = 1.0
 voice.decay_time = 0.75
 voice.sustain_level = 0.5
 voice.release_time = 1.0
 
 # Amplitude
-voice.amplitude = 0.5
-voice.tremolo_depth = 0.25
+voice.amplitude = 0.75
+voice.tremolo_depth = 0.1
 voice.tremolo_rate = 2.0
 
 # Filter
-voice.filter_frequency = 100
-voice.filter_resonance = 1.25
-voice.filter_attack_time = 1.5
-voice.filter_amount = 2000
-voice.filter_release_time = 1.0
+voice.filter_frequency = 200
+voice.filter_resonance = 1.75
+voice.filter_attack_time = 0.25
+voice.filter_amount = 1200
+voice.filter_release_time = 0.75
 voice.filter_rate = 0.5
-voice.filter_depth = 2000
+voice.filter_depth = 1000
 
 midi = adafruit_midi.MIDI(
     midi_in=usb_midi.ports[0], in_channel=0, midi_out=usb_midi.ports[1], out_channel=0

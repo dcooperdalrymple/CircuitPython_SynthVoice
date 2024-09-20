@@ -25,6 +25,7 @@ audio.play(synth)
 
 voice = Sample(synth, file="/test.wav")
 voice.waveform_loop = (0.65, 0.96)
+voice.release_time = 0.5
 
 midi = adafruit_midi.MIDI(
     midi_in=usb_midi.ports[0], in_channel=0, midi_out=usb_midi.ports[1], out_channel=0
