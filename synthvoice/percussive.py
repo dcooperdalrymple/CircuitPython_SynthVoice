@@ -9,6 +9,11 @@ import ulab.numpy as np
 
 import synthvoice
 
+try:
+    from circuitpython_typing import ReadableBuffer
+except ImportError:
+    pass
+
 
 class Voice(synthvoice.Voice):
     """Base single-shot "analog" drum voice used by other classes within the percussive module.
@@ -36,7 +41,7 @@ class Voice(synthvoice.Voice):
         filter_frequency: float = 20000.0,
         frequencies: tuple[float] = [],
         times: tuple[float] = [],
-        waveforms: tuple[np.ndarray] = [],
+        waveforms: tuple[ReadableBuffer] | ReadableBuffer = [],
     ):
         super().__init__(synthesizer)
 
@@ -109,7 +114,7 @@ class Voice(synthvoice.Voice):
             self._update_envelope()
 
     @property
-    def waveforms(self) -> tuple[np.ndarray]:
+    def waveforms(self) -> tuple[ReadableBuffer]:
         """The note waveforms as :class:`ulab.numpy.ndarray` objects with the
         :class:`ulab.numpy.int16` data type.
         """
@@ -119,9 +124,11 @@ class Voice(synthvoice.Voice):
         return tuple(value)
 
     @waveforms.setter
-    def waveforms(self, value: tuple[np.ndarray]) -> None:
+    def waveforms(self, value: tuple[ReadableBuffer] | ReadableBuffer) -> None:
         if not value:
             return
+        if not isinstance(value, tuple):
+            value = tuple([value])
         for i, note in enumerate(self.notes):
             note.waveform = value[i % len(value)]
 
@@ -229,7 +236,7 @@ class Hat(Voice):
             filter_type=synthvoice.FilterType.HIGHPASS,
             filter_frequency=9500.0,
             frequencies=(90, 135, 165.0),
-            waveforms=[synthwaveform.noise()],
+            waveforms=synthwaveform.noise(),
         )
         self._min_time = max(min_time, 0.0)
         self._max_time = max(max_time, self._min_time)
