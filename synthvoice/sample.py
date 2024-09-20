@@ -74,22 +74,6 @@ def fftfreq(data: np.ndarray, sample_rate: int):
     return freq
 
 
-def resample(data: np.ndarray, in_sample_rate: int, out_sample_rate: int) -> np.ndarray:
-    """Interpolate the data from one sample rate to another.
-
-    :param data: The data to be resampled, typically audio samples.
-    :param in_sample_rate: The rate at which the data was recorded in hertz.
-    :param out_sample_rate: The desired rate to resample the data for playback in hertz.
-    """
-    if in_sample_rate == out_sample_rate:
-        return data
-    return np.interp(
-        np.arange(0, len(data), in_sample_rate / out_sample_rate, dtype=np.float),
-        np.arange(0, len(data), 1, dtype=np.uint16),
-        data,
-    )
-
-
 def normalize(data: np.ndarray) -> np.ndarray:
     """Scale the data so that it reaches the maximum peak capable of the data type (+32767 for
     :class:`ulab.numpy.int16`).
@@ -116,7 +100,7 @@ class Sample(synthvoice.oscillator.Oscillator):
     :param synthesizer: The :class:`synthio.Synthesizer` object this voice will be used with.
     :param looping: Whether or not to continuously loop the sample or play it once when the voice is
         pressed. Defaults to true.
-    :param file: The path to the compatible audio file (16-bit integer `.wav`). Leave unset to
+    :param file: The path to the compatible audio file (16-bit integer ".wav"). Leave unset to
         initialize the voice without a specified sample. Defaults to `None`.
     :param max_size: The maximum number of samples to load into the waveform from the sample file.
     """

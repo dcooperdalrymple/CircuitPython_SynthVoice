@@ -388,7 +388,7 @@ class Oscillator(synthvoice.Voice):
     def sustain_level(self) -> float:
         """The level that the amplitude envelope will reach after the decay time has passed as a
         relative value of :attr:`amplitude` from 0.0 to 1.0. The note will sustain with this level
-        until :method:`release` is called. Defaults to 0.75.
+        until :meth:`release` is called. Defaults to 0.75.
         """
         return self._sustain_level
 
@@ -399,7 +399,7 @@ class Oscillator(synthvoice.Voice):
 
     @property
     def release_time(self) -> float:
-        """The rate of decay of the amplitude envelope to 0.0 after :method:`release` is called in
+        """The rate of decay of the amplitude envelope to 0.0 after :meth:`release` is called in
         seconds. Must be greater than 0.0s. Defaults to 0.0s.
         """
         return self._release_time
@@ -429,7 +429,7 @@ class Oscillator(synthvoice.Voice):
     @property
     def filter_amount(self) -> float:
         """The level to add to the :attr:`filter_frequency` in hertz after the filter envelope
-        attack time has passed. This value will be sustained until :method:`release` is called.
+        attack time has passed. This value will be sustained until :meth:`release` is called.
         Defaults to 0hz.
         """
         return self._filter_envelope.amount

@@ -219,7 +219,7 @@ class Hat(Voice):
     """The base class to create hi-hat drum sounds with variable timing.
 
     :param min_time: The minimum decay time in seconds. Must be greater than 0.0s.
-    :param max_time: The maximum decay time in seconds. Must be greater than `min_time`.
+    :param max_time: The maximum decay time in seconds. Must be greater than min_time.
     """
 
     def __init__(self, min_time: float, max_time: float, synthesizer: synthio.Synthesizer = None):
