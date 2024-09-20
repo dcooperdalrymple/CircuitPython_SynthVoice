@@ -105,6 +105,9 @@ class Sample(synthvoice.oscillator.Oscillator):
     :param max_size: The maximum number of samples to load into the waveform from the sample file.
     """
 
+    looping: bool = True
+    """Whether or not to continuously loop the sample or play it once when the voice is pressed."""
+
     def __init__(
         self,
         synthesizer: synthio.Synthesizer,
@@ -114,7 +117,7 @@ class Sample(synthvoice.oscillator.Oscillator):
     ):
         super().__init__(synthesizer)
 
-        self._looping = looping
+        self.looping = looping
         self._sample_rate = synthesizer.sample_rate
         self._sample_tune = 0.0
         self._loop_tune = 0.0
@@ -183,7 +186,7 @@ class Sample(synthvoice.oscillator.Oscillator):
         """
         if self._note.waveform is None or not super().press(notenum, velocity):
             return False
-        if not self._looping:
+        if not self.looping:
             self._start = time.monotonic()
         return True
 
@@ -232,7 +235,7 @@ class Sample(synthvoice.oscillator.Oscillator):
         """Update filter modulation and sample timing when :attr:`looping` is set to `False`."""
         super().update()
         if (
-            not self._looping
+            not self.looping
             and not self._start is None
             and time.monotonic() - self._start >= self.duration
         ):

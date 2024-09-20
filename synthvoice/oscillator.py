@@ -232,8 +232,8 @@ class Oscillator(synthvoice.Voice):
     @property
     def pitch_slew_time(self) -> float:
         """The amount of time in seconds it takes for the voice to reach the desired pitch after
-        starting with a relative :attr:`pitch_slew` adjustment. Must be greater than 0.0s. Defaults to
-        0.0s.
+        starting with a relative :attr:`pitch_slew` adjustment. Must be greater than 0.0s. Defaults
+        to 0.0s.
         """
         return 1 / self._pitch_slew_lfo.rate
 
