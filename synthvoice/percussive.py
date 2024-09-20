@@ -35,7 +35,7 @@ class Voice(synthvoice.Voice):
 
     def __init__(  # noqa: PLR0913
         self,
-        synthesizer: synthio.Synthesizer = None,
+        synthesizer: synthio.Synthesizer,
         count: int = 3,
         filter_type: int = synthvoice.FilterType.LOWPASS,
         filter_frequency: float = 20000.0,
@@ -185,7 +185,7 @@ class Voice(synthvoice.Voice):
 class Kick(Voice):
     """A single-shot "analog" drum voice representing a low frequency sine-wave kick drum."""
 
-    def __init__(self, synthesizer: synthio.Synthesizer = None):
+    def __init__(self, synthesizer: synthio.Synthesizer):
         sine = synthwaveform.sine()
         offset_sine = synthwaveform.sine(phase=0.5)
         super().__init__(
@@ -203,7 +203,7 @@ class Snare(Voice):
     waveforms.
     """
 
-    def __init__(self, synthesizer: synthio.Synthesizer = None):
+    def __init__(self, synthesizer: synthio.Synthesizer):
         sine_noise = synthwaveform.mix(
             synthwaveform.sine(),
             (synthwaveform.noise(), 0.5),
@@ -229,7 +229,7 @@ class Hat(Voice):
     :param max_time: The maximum decay time in seconds. Must be greater than min_time.
     """
 
-    def __init__(self, min_time: float, max_time: float, synthesizer: synthio.Synthesizer = None):
+    def __init__(self, synthesizer: synthio.Synthesizer, min_time: float, max_time: float):
         super().__init__(
             synthesizer,
             count=3,
@@ -260,7 +260,7 @@ class ClosedHat(Hat):
     waveforms.
     """
 
-    def __init__(self, synthesizer: synthio.Synthesizer = None):
+    def __init__(self, synthesizer: synthio.Synthesizer):
         super().__init__(0.025, 0.2, synthesizer)
 
 
@@ -269,5 +269,5 @@ class OpenHat(Hat):
     waveforms.
     """
 
-    def __init__(self, synthesizer: synthio.Synthesizer = None):
+    def __init__(self, synthesizer: synthio.Synthesizer):
         super().__init__(0.25, 1.0, synthesizer)

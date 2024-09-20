@@ -221,7 +221,7 @@ class Voice:
     :param synthesizer: The :class:`synthio.Synthesizer` object this voice will be used with.
     """
 
-    def __init__(self, synthesizer: synthio.Synthesizer = None):
+    def __init__(self, synthesizer: synthio.Synthesizer):
         self._synthesizer = synthesizer
 
         self._notenum = -1

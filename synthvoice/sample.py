@@ -107,7 +107,7 @@ class Sample(synthvoice.oscillator.Oscillator):
 
     def __init__(
         self,
-        synthesizer: synthio.Synthesizer = None,
+        synthesizer: synthio.Synthesizer,
         looping: bool = True,
         file: str = None,
         max_size: int = 4096,

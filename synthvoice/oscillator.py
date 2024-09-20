@@ -29,7 +29,7 @@ class Oscillator(synthvoice.Voice):
         value will effect tuning properties.
     """
 
-    def __init__(self, synthesizer: synthio.Synthesizer = None, root: float = 440.0):
+    def __init__(self, synthesizer: synthio.Synthesizer, root: float = 440.0):
         super().__init__(synthesizer)
 
         self._filter_envelope = synthvoice.AREnvelope(
